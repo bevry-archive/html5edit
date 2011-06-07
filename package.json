@@ -1,0 +1,54 @@
+{
+	"name": "html5edit",
+	"version": "0.1.0",
+	"description": "HTML5 Edit is contenteditable for all",
+	"homepage": "https://github.com/balupton/html5edit",
+	"keywords": [
+		"javascript",
+		"coffeescript",
+		"contenteditable",
+		"wysiwyg"
+	],
+	"author": {
+		"name": "Benjamin Lupton",
+		"email": "b@lupton.cc",
+		"web": "http://balupton.com"
+	},
+	"maintainers": [
+		{
+			"name": "Benjamin Lupton",
+			"email": "b@lupton.cc",
+			"web": "http://balupton.com"
+		}
+	],
+	"contributors": [
+		{
+			"name": "Benjamin Lupton",
+			"email": "b@lupton.cc",
+			"web": "http://balupton.com"
+		}
+	],
+	"bugs": {
+		"web": "https://github.com/balupton/html5edit/issues"
+	},
+	"licenses": [
+		{
+			"type": "MIT",
+			"url": "http://creativecommons.org/licenses/MIT/"
+		}
+	],
+	"repository" : {
+		"type" : "git",
+		"url" : "http://github.com/balupton/html5edit.git"
+	},
+	"dependencies": {
+		"simple-server": ">=0.1.4",
+		"coffee-script": ">=1.1.1"
+	},
+	"engines" : {
+		"node": ">=0.4.0"
+	},
+	"bin": {
+		"html5edit": "./bin/html5edit.coffee"
+	}
+}

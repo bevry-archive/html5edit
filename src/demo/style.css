@@ -1,0 +1,7 @@
+#style {
+	display:block;
+}
+#code, #pre {
+	display:block;
+	white-space:pre;
+}
