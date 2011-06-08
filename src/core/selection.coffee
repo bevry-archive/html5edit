@@ -15,15 +15,40 @@ $.fn.outerHtml = $.fn.outerHtml or ->
   outerHtml
 
 # Fetch node offset
-$.fn.fetchNodeOffset = (textIndex) ->
+# $('<div>a <span>b c</span> d</div>').getNodeOffset(4) > ['b c',2]
+$.fn.getNodeOffset = (textIndex) ->
 	# Prepare
 	$parent = $(this)
 	parent = $parent.get(0)
+	result = null
 
 	# Contents
-	$container = $(container)
-	container = $container.get(0)
+	currentTextIndex = 0
+	$parent.contents().each ->
+		# Fetch
+		$container = $(this)
+		container = $container.get(0)
+		text = $container.text()
 
+		# Increment
+		currentTextIndex += text.length
+		unless currentTextIndex >= textIndex
+			return true # continue
+		
+		# Calculate offset
+		offset = textIndex-(currentTextIndex-text.length)
+
+		# Element (not textnode)
+		unless container.nodeType is 3
+			result = $container.getNodeOffset(offset)
+		else
+			result = [container,offset]
+		
+		# Break
+		return false
+
+	# Return
+	return result
 
 # Expand an offset
 $.fn.expandOffset = (container,offset) ->
@@ -72,7 +97,6 @@ $.fn.expandOffset = (container,offset) ->
 		console.log 'no level child', [parent,container]
 		debugger
 		throw new Error('The child does not exist in the parent')
-
 	
 	# Return
 	offset
@@ -117,8 +141,8 @@ $.fn.selectionRange = (selectionRange) ->
 			selection.removeAllRanges()
 
 			# Range Nodes
-			[startNode,startOffset] = $parent.fetchNodeOffset(selectionRange.selectionStart)
-			[endNode,endOffset] = $parent.fetchNodeOffset(selectionRange.selectionEnd)
+			[startNode,startOffset] = $el.getNodeOffset(selectionRange.selectionStart)
+			[endNode,endOffset] = $el.getNodeOffset(selectionRange.selectionEnd)
 
 			# Range
 			range = document.createRange()
