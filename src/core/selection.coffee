@@ -13,66 +13,176 @@ $.fn.outerHtml = $.fn.outerHtml or ->
   el = $el.get(0)
   outerHtml = el.outerHTML or new XMLSerializer().serializeToString(el)
   outerHtml
- 
-# Level an offset from a series of children to the parent
-$.fn.levelOffset = (parent,offset) ->
+
+# Fetch node offset
+$.fn.fetchNodeOffset = (textIndex) ->
 	# Prepare
-	$el = $(this)
+	$parent = $(this)
+	parent = $parent.get(0)
 
-	# Level
-	while !$el.same($parent)
-		# Prepare
-		el = $el.get(0)
-		$parent = $el.parent()
+	# Contents
+	$container = $(container)
+	container = $container.get(0)
 
-		# Cycle through contents
+
+# Expand an offset
+$.fn.expandOffset = (container,offset) ->
+	# Prepare
+	$parent = $(this)
+	parent = $parent.get(0)
+	$container = $(container)
+	container = $container.get(0)
+
+	# Container Element
+	containerElement = container
+	while containerElement.nodeType is 3
+		containerElement = containerElement.parentNode
+	$containerElement = $(containerElement)
+
+	# Check to see if the container is the parent
+	if $parent.same($container)
+		console.log 'same level child', [parent,container]
+		return offset
+
+	# Check to see if the container is a 1st level child
+	else if $parent.contents().filter($container).length isnt 0
+		console.log 'first level child', [parent,container]
 		$parent.contents().each ->
 			# Desired
-			if this is el
+			if this is container
 				return false
-			# Text
+			# Textnode
 			else if this.nodeType is 3
 				offset += this.data.length
 			# Element
 			else
 				offset += $(this).html().length
 		
-		# Level up
-		$el = $el.parent()
+	# Check to see if the container is a deep child
+	else if $parent.find($containerElement).length isnt 0
+		console.log 'deep level child', [parent,container]
+		$parent.children().each ->
+			$el = $(this)
+			offset += $el.expandOffset(container,offset)
+			if $el.find($container)
+				return false
+
+	# Error
+	else
+		console.log 'no level child', [parent,container]
+		debugger
+		throw new Error('The child does not exist in the parent')
+
 	
 	# Return
 	offset
+
+
+# Apply or Fetch the selectionRange
+$.fn.selectionRange = (selectionRange) ->
+	# Prepare
+	$el = $(this)
+	el = $el.get(0)
+	result = this
+
+	# Textarea
+	if $el.is('textarea')
+		# Apply
+		if selectionRange?
+			# Apply
+			el.selectionStart = selectionRange.selectionStart
+			el.selectionEnd = selectionRange.selectionEnd
+
+			# Result
+			result = this
+		
+		# Fetch
+		else
+			# Fetch
+			selectionRange =
+				selectionStart: el.selectionStart
+				selectionEnd: el.selectionEnd
+			
+			# Result
+			result = selectionRange
 	
+	# Element
+	else
+		# Apply
+		if selectionRange?
+			# TODO
+			
+			# Fetch
+			selection = window.getSelection()
+			selection.removeAllRanges()
+
+			# Range Nodes
+			[startNode,startOffset] = $parent.fetchNodeOffset(selectionRange.selectionStart)
+			[endNode,endOffset] = $parent.fetchNodeOffset(selectionRange.selectionEnd)
+
+			# Range
+			range = document.createRange()
+			range.selectNodeContents(el)
+			range.setStart(startNode,startOffset)
+			range.setEnd(endNode,endOffset)
+
+			# Apply
+			selection.addRange(range)
+
+			# Result
+			result = this
+			
+		# Fetch
+		else
+			# Fetch
+			selection = window.getSelection()
+			
+			# Check
+			unless selection.rangeCount
+				return null
+			
+			# Fetch
+			range = selection.getRangeAt(0)
+			parent = range.commonAncestorContainer
+
+			# Level parent
+			while parent.nodeType is 3
+				parent = parent.parentNode
+			$parent = $(parent)
+
+			# Level offsets
+			selectionStart = $parent.expandOffset(range.startContainer,range.startOffset)
+			selectionEnd = $parent.expandOffset(range.endContainer,range.endOffset)
+
+			# Range
+			selectionRange = {selectionStart,selectionEnd}
+			
+			# Result
+			result = selectionRange
+	
+	# Return
+	result
 
 # Create or Fetch the range surrounding a selection
-$.fn.selection = (range) ->
-	# Apply?
-	if range?
+$.fn.selection = (selectionRange) ->
+	# Prepare
+	$el = $(this)
+	el = $el.get(0)
 
-	# Fetch
+	# Apply or Fetch
+	if selectionRange?
+		$el.selectionRange(selectionRange)
 	else
-		# Fetch
-		range = window.getSelection().getRangeAt(0)
-		parent = range.commonAncestorContainer
-
-		# Level parent
-		while parent.nodeType is 3
-			parent = parent.parentNode
-
-		# Elements
-		$parent = $(parent)
-		$left = $(range.startContainer.parentNode)
-		$right = $(range.endContainer.parentNode)
-		left = range.startOffset
-		right = range.endOffset
-
-		# Level offsets
-		left = $left.levelOffset($parent,left)
-		right = $right.levelOffset($parent,right)
-
-		# Range
-		console.log($parent,left,right)
-		$range = $parent.range(left,right)
-
-		# Return
-		$range
+		selectionRange = $el.selectionRange()
+	
+	console.log 'selectionRange:', selectionRange
+	
+	# Range
+	if selectionRange?
+		$range = $el.range(selectionRange.selectionStart,selectionRange.selectionEnd)
+		$el.selectionRange(selectionRange) # re-apply, as range will change the dom
+	else
+		$range = $el
+	
+	# Return
+	$range

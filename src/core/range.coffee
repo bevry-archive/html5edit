@@ -82,6 +82,10 @@ String.prototype.levelTextIndexes = (start, finish) ->
 # Levels the playing field between two text indexes
 # "a <strong>b</strong> c d".levelHtmlIndexes(10,22) > 2,22
 String.prototype.levelHtmlIndexes = (startIndex, finishIndex) ->
+	# Check
+	if startIndex > finishIndex
+		throw new Error('Start greater than finish!')
+	
 	# Prepare
 	startDepth = @getHtmlIndexDepth(startIndex)
 	finishDepth = @getHtmlIndexDepth(finishIndex)
@@ -110,17 +114,40 @@ $.fn.range = (start, finish) ->
 	# Check
 	unless html
 		return $el
+	if start > finish
+		throw new Error('$.fn.range was passed a start index greater than the finish index')
+
+	# Check
+	if (start? and finish?) isnt true
+		throw new Error('$.fn.range was passed incorrect indexes')
 
 	# Indexes
 	[startIndex,finishIndex] = html.levelTextIndexes(start, finish)
 
-	# Add partial for range
-	html = html.substring(0, startIndex) + '<span class="range new">' + html.substring(startIndex, finishIndex) + '</span>' + html.substring(finishIndex)
-	$range = $el.html(html).find('span.range.new')
-	if html isnt $el.html()
-		throw new Error('range was not applied as expected')
-	$range.removeClass 'new'
+	# Check
+	if (startIndex? and finishIndex?) isnt true
+		console.log [start,finish], $el.text(), html
+		throw new Error('$.fn.range could not level indexes')
 
+	# Check
+	if startIndex? and finishIndex?
+		console.log html.substring(startIndex, finishIndex)
+
+		# Wrap range with a range element
+		wrappedHtml = html.substring(0, startIndex)+
+			'<span class="range new">'+
+			html.substring(startIndex, finishIndex)+
+			'</span>'+
+			html.substring(finishIndex)
+		
+		# Apply range element
+		$range = $el.html(wrappedHtml).find('span.range.new')
+		if wrappedHtml isnt $el.html()
+			throw new Error('range was not applied as expected')
+		$range.removeClass 'new'
+	else
+		$range = $el
+	
 	# Return
 	$range
 
@@ -138,3 +165,11 @@ $.fn.cleanRanges = ->
 	
 	# Return
 	$this
+
+# Clean the element
+$.fn.clean = ->
+	# Prepare
+	$this = $(this)
+
+	# Ranges
+	$this.cleanRanges()
