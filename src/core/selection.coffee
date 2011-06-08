@@ -14,6 +14,40 @@ $.fn.outerHtml = $.fn.outerHtml or ->
   outerHtml = el.outerHTML or new XMLSerializer().serializeToString(el)
   outerHtml
 
+# Fetch the actual jQuery element of the node, useful for textnodes
+$.fn.element = ->
+	# Prepare
+	$el = $(this)
+	el = $el.get(0)
+
+	# Cycle
+	while el.nodeType is 3
+		el = el.parentNode
+	$el = $(el)
+
+	# Return
+	$el
+
+$.fn.includes = (container) ->
+	# Prepare
+	$el = $(this)
+	el = $el.get(0)
+	$container = $(container)
+	container = $container.get(0)
+
+	# Discover
+	result = (
+		if $el.contents().filter($container).length
+			'child'
+		else if $el.find($container).length or $el.find($container.element()).length or $el.contents().filter($container.element()).length
+			'deep'
+		else
+			false
+	)
+
+	# Return
+	result
+
 # Fetch node offset
 # $('<div>a <span>b c</span> d</div>').getNodeOffset(4) > ['b c',2]
 $.fn.getNodeOffset = (textIndex) ->
@@ -57,49 +91,39 @@ $.fn.expandOffset = (container,offset) ->
 	parent = $parent.get(0)
 	$container = $(container)
 	container = $container.get(0)
-
-	# Container Element
-	containerElement = container
-	while containerElement.nodeType is 3
-		containerElement = containerElement.parentNode
-	$containerElement = $(containerElement)
+	result = 0
 
 	# Check to see if the container is the parent
 	if $parent.same($container)
-		console.log 'same level child', [parent,container]
-		return offset
+		console.log 'love child', [parent,container]
+		result = offset
 
 	# Check to see if the container is a 1st level child
-	else if $parent.contents().filter($container).length isnt 0
-		console.log 'first level child', [parent,container]
+	else if $parent.includes($container)
+		console.log 'nested child', [parent,container]
 		$parent.contents().each ->
-			# Desired
-			if this is container
-				return false
-			# Textnode
-			else if this.nodeType is 3
-				offset += this.data.length
-			# Element
-			else
-				offset += $(this).html().length
-		
-	# Check to see if the container is a deep child
-	else if $parent.find($containerElement).length isnt 0
-		console.log 'deep level child', [parent,container]
-		$parent.children().each ->
 			$el = $(this)
-			offset += $el.expandOffset(container,offset)
-			if $el.find($container)
+			el = $el.get(0)
+			# Same
+			if $el.same($container)
+				result += offset
+				return false
+			# Intermediate
+			else if (el.nodeType is 3) or !$el.includes($container)
+				result += $el.text().length
+				return true
+			# Inside
+			else
+				result += $el.expandOffset(container,offset)
 				return false
 
 	# Error
 	else
 		console.log 'no level child', [parent,container]
-		debugger
 		throw new Error('The child does not exist in the parent')
 	
 	# Return
-	offset
+	result
 
 
 # Apply or Fetch the selectionRange
@@ -174,9 +198,13 @@ $.fn.selectionRange = (selectionRange) ->
 				parent = parent.parentNode
 			$parent = $(parent)
 
+			console.log('parent:',parent)
+
 			# Level offsets
-			selectionStart = $parent.expandOffset(range.startContainer,range.startOffset)
-			selectionEnd = $parent.expandOffset(range.endContainer,range.endOffset)
+			console.log 'start'
+			selectionStart = $el.expandOffset(range.startContainer,range.startOffset)
+			console.log 'end'
+			selectionEnd = $el.expandOffset(range.endContainer,range.endOffset)
 
 			# Range
 			selectionRange = {selectionStart,selectionEnd}
@@ -206,7 +234,7 @@ $.fn.selection = (selectionRange) ->
 		$range = $el.range(selectionRange.selectionStart,selectionRange.selectionEnd)
 		$el.selectionRange(selectionRange) # re-apply, as range will change the dom
 	else
-		$range = $el
+		$range = $()
 	
 	# Return
 	$range

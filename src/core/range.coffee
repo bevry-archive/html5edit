@@ -5,7 +5,6 @@ String.prototype.textToHtmlIndex = (index) ->
 	parts = @split(/<|>/g)
 	textIndex = 0
 	htmlIndex = 0
-	resutl = -1
 
 	# Detect Indexes
 	for part,i in parts
@@ -22,11 +21,11 @@ String.prototype.textToHtmlIndex = (index) ->
 
 			# Reached?
 			if textIndex > index
-				result = htmlIndex - (textIndex - index)
+				htmlIndex -= (textIndex - index)
 				break
 	
 	# Return
-	result
+	htmlIndex
 
 # Returns the current node depth of the index
 # "a <strong>b</strong> c d".getTextIndexDepth(2) > 1
@@ -81,12 +80,14 @@ String.prototype.levelTextIndexes = (start, finish) ->
 
 # Levels the playing field between two text indexes
 # "a <strong>b</strong> c d".levelHtmlIndexes(10,22) > 2,22
-String.prototype.levelHtmlIndexes = (startIndex, finishIndex) ->
+String.prototype.levelHtmlIndexes = (start, finish) ->
 	# Check
 	if startIndex > finishIndex
 		throw new Error('Start greater than finish!')
 	
 	# Prepare
+	startIndex = start
+	finishIndex = finish
 	startDepth = @getHtmlIndexDepth(startIndex)
 	finishDepth = @getHtmlIndexDepth(finishIndex)
 
@@ -99,10 +100,12 @@ String.prototype.levelHtmlIndexes = (startIndex, finishIndex) ->
 		n = finishDepth - startDepth
 		n = startDepth - finishDepth
 		for i in [0...n]
-			finishIndex = @indexOf('>', finishIndex + 1)
+			finishIndex = @indexOf('>', finishIndex + 1)+1
+
+	console.log 'level:', [startDepth,finishDepth], [start,finish], [startIndex,finishIndex]
 	
 	# Return
-	[ startIndex, finishIndex ]
+	[startIndex, finishIndex]
 
 # Returns a jQuery element for a text range
 # $("a <strong>b</strong> c d").range(2,5) > $("<span class="partial"><strong>b</strong> c</span>")
@@ -122,7 +125,8 @@ $.fn.range = (start, finish) ->
 		throw new Error('$.fn.range was passed incorrect indexes')
 
 	# Indexes
-	[startIndex,finishIndex] = html.levelTextIndexes(start, finish)
+	console.log 'range:', [start,finish]
+	[startIndex,finishIndex] = html.levelTextIndexes(start,finish)
 
 	# Check
 	if (startIndex? and finishIndex?) isnt true
@@ -151,6 +155,12 @@ $.fn.range = (start, finish) ->
 	# Return
 	$range
 
+# Turn an element's insides into its outsides
+$.fn.puke = ->
+	$this = $(this)
+	$this.replaceWith $this.html()
+	$this
+
 # Clean ranges from the element
 # $("a <strong><span class="range">b</span></strong> c d").cleanRanges() > $("a <strong>b</strong> c d")
 $.fn.cleanRanges = ->
@@ -161,7 +171,7 @@ $.fn.cleanRanges = ->
 	while true
 		$range = $this.find('.range:first')
 		if $range.length is 0 then break
-		$range.replaceWith $range.html()
+		$range.puke()
 	
 	# Return
 	$this
@@ -171,5 +181,18 @@ $.fn.clean = ->
 	# Prepare
 	$this = $(this)
 
+	# Selection range
+	selectionRange = $this.selectionRange()
+
 	# Ranges
 	$this.cleanRanges()
+
+	# Elements
+	for elementType in ['strong','b','u','em','i','del','ins']
+		$this.find(elementType).find(elementType).puke()
+
+	# Selection range
+	$this.selectionRange(selectionRange)
+
+	# Return
+	$this
