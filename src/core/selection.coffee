@@ -21,9 +21,12 @@ $.fn.element = ->
 	el = $el.get(0)
 
 	# Cycle
-	while el.nodeType is 3
-		el = el.parentNode
-	$el = $(el)
+	if el
+		while el.nodeType is 3
+			el = el.parentNode
+		$el = $(el)
+	else
+		$el = $()
 
 	# Return
 	$el
@@ -50,44 +53,74 @@ $.fn.includes = (container) ->
 	# Return
 	result
 
+$.fn.elementStartLength = ->
+	$el = $(this)
+	outerHtml = $el.outerHtml()
+	result =
+		if outerHtml and outerHtml[0] is '<'
+			outerHtml.replace(/>.+$/g,'>').length
+		else
+			0
+
+$.fn.elementEndLength = ->
+	$el = $(this)
+	outerHtml = $el.outerHtml()
+	result =
+		if outerHtml and outerHtml[0] is '<'
+			outerHtml.replace(/^.+</g,'<').length
+		else
+			0
+
 # Fetch node offset
 # $('<div>a <span>b c</span> d</div>').getNodeOffset(4) > ['b c',2]
-$.fn.getNodeOffset = (textIndex) ->
+$.fn.getNodeHtmlOffset = (htmlIndex) ->
 	# Prepare
 	$parent = $(this)
 	parent = $parent.get(0)
 	result = null
 
 	# Contents
-	currentTextIndex = 0
+	currentHtmlIndex = 0
 	$parent.contents().each ->
 		# Fetch
 		$container = $(this)
 		container = $container.get(0)
-		text = $container.text()
+		htmlLength = ($container.html() || $container.text()).length
+		startLength = $container.elementStartLength()
 
-		# Increment
-		currentTextIndex += text.length
-		unless currentTextIndex >= textIndex
-			return true # continue
+		# Add start
+		currentHtmlIndex += startLength + htmlLength
+
+		# We are good to go
+		if currentHtmlIndex >= htmlIndex
+			# Calculate offset
+			offset = htmlIndex-(currentHtmlIndex-htmlLength)
+
+			# We haven't overshot?
+			if offset >= 0
+				# This is it
+				if container.nodeType is 3
+					result = [container,offset]
+				
+				# Delve deeper
+				else
+					result = $container.getNodeHtmlOffset(offset)
+					unless result?
+						result = [container,offset]
+				
+			# Break
+			return false
 		
-		# Calculate offset
-		offset = textIndex-(currentTextIndex-text.length)
-
-		# Element (not textnode)
-		unless container.nodeType is 3
-			result = $container.getNodeOffset(offset)
+		# Keep looking
 		else
-			result = [container,offset]
-		
-		# Break
-		return false
+			# Add end
+			currentHtmlIndex += $container.elementEndLength()
 
 	# Return
 	return result
 
 # Expand an offset
-$.fn.expandOffset = (container,offset) ->
+$.fn.expandHtmlOffset = (container,offset) ->
 	# Prepare
 	$parent = $(this)
 	parent = $parent.get(0)
@@ -99,7 +132,7 @@ $.fn.expandOffset = (container,offset) ->
 	# Check to see if the container is the parent
 	if includes is 'same'
 		#console.log 'love child', [parent,container]
-		result = offset
+		result = $el.elementStartLength() + offset
 
 	# Check to see if the container is a 1st level child
 	else if includes
@@ -109,15 +142,15 @@ $.fn.expandOffset = (container,offset) ->
 			el = $el.get(0)
 			# Same
 			if $el.same($container)
-				result += offset
+				result += offset + $el.elementStartLength()
 				return false
 			# Intermediate
 			else if (el.nodeType is 3) or !$el.includes($container)
-				result += $el.text().length
+				result += ($el.outerHtml() || $el.html() || $el.text()).length
 				return true
 			# Inside
 			else
-				result += $el.expandOffset(container,offset)
+				result += $el.elementStartLength() + $el.expandHtmlOffset(container,offset)
 				return false
 
 	# Error
@@ -130,7 +163,7 @@ $.fn.expandOffset = (container,offset) ->
 
 
 # Apply or Fetch the selectionRange
-$.fn.selectionRange = (selectionRange) ->
+$.fn.htmlSelectionRange = (selectionRange) ->
 	# Prepare
 	$el = $(this)
 	el = $el.get(0)
@@ -188,8 +221,8 @@ $.fn.selectionRange = (selectionRange) ->
 
 			# Range Nodes
 			if $el.text().length
-				[startNode,startOffset] = $el.getNodeOffset(selectionRange.selectionStart)
-				[endNode,endOffset] = $el.getNodeOffset(selectionRange.selectionEnd)
+				[startNode,startOffset] = $el.getNodeHtmlOffset(selectionRange.selectionStart)
+				[endNode,endOffset] = $el.getNodeHtmlOffset(selectionRange.selectionEnd)
 				range.setStart(startNode,startOffset)
 				range.setEnd(endNode,endOffset)
 
@@ -219,9 +252,26 @@ $.fn.selectionRange = (selectionRange) ->
 
 			# Check heirarchy
 			try
-				# Level offsets
-				selectionStart = $el.expandOffset(range.startContainer,range.startOffset)
-				selectionEnd = $el.expandOffset(range.endContainer,range.endOffset)
+				# Level start offset
+				debugger
+				if true
+					$start = $(range.startContainer).element()
+					startHtml = $start.html()
+					startOffset = $start.text().indexOf($(range.startContainer).text())
+					startIndex = startHtml.textToHtmlIndex(startOffset+range.startOffset)
+					selectionStart = $el.expandHtmlOffset($start,startIndex)
+				else
+					selectionStart = $el.expandHtmlOffset(range.startContainer,range.startOffset)
+
+				# Level end offset
+				if true
+					$end = $(range.endContainer).element()
+					endHtml = $end.html()
+					endOffset = $end.text().indexOf($(range.endContainer).text())
+					endIndex = endHtml.textToHtmlIndex(endOffset+range.endOffset)
+					selectionEnd = $el.expandHtmlOffset($end,endIndex)
+				else
+					selectionEnd = $el.expandHtmlOffset(range.endContainer,range.endOffset)
 				
 				# Range
 				selectionRange = {selectionStart,selectionEnd}
@@ -236,23 +286,23 @@ $.fn.selectionRange = (selectionRange) ->
 	result
 
 # Create or Fetch the range surrounding a selection
-$.fn.selection = (selectionRange) ->
+$.fn.htmlSelection = (selectionRange) ->
 	# Prepare
 	$el = $(this)
 	el = $el.get(0)
 
 	# Apply or Fetch
 	if selectionRange?
-		$el.selectionRange(selectionRange)
+		$el.htmlSelectionRange(selectionRange)
 	else
-		selectionRange = $el.selectionRange()
+		selectionRange = $el.htmlSelectionRange()
 	
 	console.log 'selectionRange:', selectionRange
 	
 	# Range
 	if selectionRange?
 		$slice = $el.htmlSlice(selectionRange.selectionStart,selectionRange.selectionEnd)
-		$el.selectionRange(selectionRange) # re-apply, as range will change the dom
+		$el.htmlSelectionRange(selectionRange) # re-apply, as range will change the dom
 	else
 		$slice = $()
 	
@@ -265,7 +315,7 @@ $.fn.select = ->
 	$el = $(this)
 
 	# Select
-	$el.selectionRange({selectionStart:0,selectionEnd:0})
+	$el.htmlSelectionRange({selectionStart:0,selectionEnd:0})
 	$el.focus()
 
 	# Return

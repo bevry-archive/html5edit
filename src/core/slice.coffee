@@ -2,7 +2,7 @@
 # "a <strong>b</strong> c d".textToHtmlIndex(2) > 10
 String.prototype.textToHtmlIndex = (index) ->
 	# Prepare
-	html = @
+	html = @.toString()
 	textIndex = 0
 	htmlIndex = 0
 	entityRegex = /(\&[0-9a-zA-Z]+\;)/g
@@ -51,6 +51,20 @@ String.prototype.textToHtmlIndex = (index) ->
 	
 	# Return
 	htmlIndex
+
+# Turns a text index into a html index
+# "a <strong>b</strong> c d".textToHtmlIndex(2) > 10
+String.prototype.htmlToTextIndex = (htmlIndex) ->
+	# Prepare
+	html = @.toString()
+
+	# Detect
+	token = '!!'+Math.random()+'!!'
+	$html = $(html.substring(0,htmlIndex)+token+html.substring(htmlIndex))
+	textIndex = $html.text().indexOf(token)
+
+	# Return
+	textIndex
 
 # Returns the current node depth of the index
 # "a <strong>b</strong> c d".getTextIndexDepth(2) > 1
@@ -227,9 +241,13 @@ $.fn.cleanSlices = ->
 $.fn.clean = ->
 	# Prepare
 	$this = $(this)
+	html = $this.html()
 
 	# Fetch selection
-	selectionRange = $this.selectionRange()
+	selectionRange = $this.htmlSelectionRange()
+	if selectionRange
+		selectionRange.selectionStart = html.htmlToTextIndex(selectionRange.selectionStart)
+		selectionRange.selectionEnd = html.htmlToTextIndex(selectionRange.selectionEnd)
 
 	# Slices
 	$this.cleanSlices()
@@ -239,7 +257,10 @@ $.fn.clean = ->
 		$this.find(elementType).find(elementType).puke()
 	
 	# Reapply selection
-	$this.selectionRange(selectionRange)
+	if selectionRange
+		selectionRange.selectionStart = html.textToHtmlIndex(selectionRange.selectionStart)
+		selectionRange.selectionEnd = html.textToHtmlIndex(selectionRange.selectionEnd)
+		$this.htmlSelectionRange(selectionRange)
 
 	# Return
 	$this

@@ -1,5 +1,4 @@
-$ ->
-	# Enter event
+$ -> # Enter event
 	$.fn.enter = $.fn.enter or (data, callback) ->
 	  $(this).binder("enter", data, callback)
 
@@ -32,7 +31,7 @@ $ ->
 			$this
 		.live 'enter', ->
 			$this = $(this)
-			$sel = $this.selectionRange()
+			$sel = $this.htmlSelectionRange()
 			cleaner = ->
 				$this.find(':has(> br:first-child:last-child)').replaceWith('<p class="new p">&nbsp;&nbsp;</p>')
 				found = true
@@ -42,5 +41,5 @@ $ ->
 					found = $p.length
 				$new = $this.find('p.p.new')
 				if $new.length is 1
-					$new.selectionRange(1,1).removeClass('new')
+					$new.htmlSelectionRange(1,1).removeClass('new')
 			#setTimeout cleaner, 500
