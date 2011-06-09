@@ -5,3 +5,20 @@
 	display:block;
 	white-space:pre;
 }
+
+[contenteditable] {
+	-webkit-line-break: normal;
+}
+
+:focus {
+	border-left:5px solid black;
+}
+
+p,div {
+	text-align: left;
+	width:100%;
+	min-height:1em;
+	display:block;
+	margin:1em 0;
+	line-height:1em;
+}

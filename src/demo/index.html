@@ -4,8 +4,8 @@
 	<title>HTML5 Edit!</title>
 	<link rel="stylesheet" href="style.css" />
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
-	<script src="../core/change.coffee"></script>
-	<script src="../core/range.coffee"></script>
+	<script src="../core/contenteditable.coffee"></script>
+	<script src="../core/slice.coffee"></script>
 	<script src="../core/selection.coffee"></script>
 </head>
 <body>
@@ -14,7 +14,7 @@
 			background: #EEE;
 		}
 	</style>
-	<div id="content" contenteditable>a b c d e</div>
+	<div id="content" contenteditable><p>a b c d e</p></div>
 	<button id="wrap">wrap selection</button>
 	<code id="code"></code>
 	<pre id="selection"></pre>

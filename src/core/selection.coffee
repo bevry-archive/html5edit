@@ -41,6 +41,8 @@ $.fn.includes = (container) ->
 			'child'
 		else if $el.find($container).length or $el.find($container.element()).length or $el.contents().filter($container.element()).length
 			'deep'
+		else if $el.same($container)
+			'same'
 		else
 			false
 	)
@@ -92,15 +94,16 @@ $.fn.expandOffset = (container,offset) ->
 	$container = $(container)
 	container = $container.get(0)
 	result = 0
+	includes = $parent.includes($container)
 
 	# Check to see if the container is the parent
-	if $parent.same($container)
-		console.log 'love child', [parent,container]
+	if includes is 'same'
+		#console.log 'love child', [parent,container]
 		result = offset
 
 	# Check to see if the container is a 1st level child
-	else if $parent.includes($container)
-		console.log 'nested child', [parent,container]
+	else if includes
+		#console.log 'nested child', [parent,container]
 		$parent.contents().each ->
 			$el = $(this)
 			el = $el.get(0)
@@ -119,7 +122,7 @@ $.fn.expandOffset = (container,offset) ->
 
 	# Error
 	else
-		console.log 'no level child', [parent,container]
+		#console.log 'no level child', [parent,container]
 		throw new Error('The child does not exist in the parent')
 	
 	# Return
@@ -132,6 +135,19 @@ $.fn.selectionRange = (selectionRange) ->
 	$el = $(this)
 	el = $el.get(0)
 	result = this
+
+	# Adjust
+	if typeof selectionRange is 'number'
+		if arguments.length is 2
+			selectionRange = {
+				selectionStart: arguments[0]
+				selectionEnd: arguments[1]
+			}
+		else
+			selectionRange = {
+				selectionStart: arguments[0]
+				selectionEnd: arguments[0]
+			}
 
 	# Textarea
 	if $el.is('textarea')
@@ -158,21 +174,24 @@ $.fn.selectionRange = (selectionRange) ->
 	else
 		# Apply
 		if selectionRange?
-			# TODO
-			
+			# Check
+			unless el
+				return $el
+
 			# Fetch
 			selection = window.getSelection()
 			selection.removeAllRanges()
 
-			# Range Nodes
-			[startNode,startOffset] = $el.getNodeOffset(selectionRange.selectionStart)
-			[endNode,endOffset] = $el.getNodeOffset(selectionRange.selectionEnd)
-
 			# Range
 			range = document.createRange()
 			range.selectNodeContents(el)
-			range.setStart(startNode,startOffset)
-			range.setEnd(endNode,endOffset)
+
+			# Range Nodes
+			if $el.text().length
+				[startNode,startOffset] = $el.getNodeOffset(selectionRange.selectionStart)
+				[endNode,endOffset] = $el.getNodeOffset(selectionRange.selectionEnd)
+				range.setStart(startNode,startOffset)
+				range.setEnd(endNode,endOffset)
 
 			# Apply
 			selection.addRange(range)
@@ -198,19 +217,20 @@ $.fn.selectionRange = (selectionRange) ->
 				parent = parent.parentNode
 			$parent = $(parent)
 
-			console.log('parent:',parent)
-
-			# Level offsets
-			console.log 'start'
-			selectionStart = $el.expandOffset(range.startContainer,range.startOffset)
-			console.log 'end'
-			selectionEnd = $el.expandOffset(range.endContainer,range.endOffset)
-
-			# Range
-			selectionRange = {selectionStart,selectionEnd}
+			# Check heirarchy
+			try
+				# Level offsets
+				selectionStart = $el.expandOffset(range.startContainer,range.startOffset)
+				selectionEnd = $el.expandOffset(range.endContainer,range.endOffset)
+				
+				# Range
+				selectionRange = {selectionStart,selectionEnd}
 			
-			# Result
-			result = selectionRange
+				# Result
+				result = selectionRange
+			
+			catch err
+				result = null
 	
 	# Return
 	result
@@ -231,10 +251,22 @@ $.fn.selection = (selectionRange) ->
 	
 	# Range
 	if selectionRange?
-		$range = $el.range(selectionRange.selectionStart,selectionRange.selectionEnd)
+		$slice = $el.htmlSlice(selectionRange.selectionStart,selectionRange.selectionEnd)
 		$el.selectionRange(selectionRange) # re-apply, as range will change the dom
 	else
-		$range = $()
+		$slice = $()
 	
 	# Return
-	$range
+	$slice
+
+# Select the current element
+$.fn.select = ->
+	# Prepare
+	$el = $(this)
+
+	# Select
+	$el.selectionRange({selectionStart:0,selectionEnd:0})
+	$el.focus()
+
+	# Return
+	$el

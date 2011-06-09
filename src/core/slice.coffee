@@ -2,26 +2,51 @@
 # "a <strong>b</strong> c d".textToHtmlIndex(2) > 10
 String.prototype.textToHtmlIndex = (index) ->
 	# Prepare
-	parts = @split(/<|>/g)
+	html = @
 	textIndex = 0
 	htmlIndex = 0
+	entityRegex = /(\&[0-9a-zA-Z]+\;)/g
+	elementRegex = /(\<[0-9a-zA-Z]+\>)/g
+	elementFirstRegex = /^\<[0-9a-zA-Z]+\>/
+	entityFirstRegex = /^\&[0-9a-zA-Z]+\;/
 
 	# Detect Indexes
-	for part,i in parts
-		# Increment for <|>
-		if i then htmlIndex++
-
-		# Adjust htmlIndex
-		htmlIndex += part.length
+	htmlParts = html.split(/<|>/g)
+	for htmlPart,i in htmlParts
+		# Html node
+		if (i % 2) is 1
+			# Adjust html index
+			htmlIndex += htmlPart.length + 2
 
 		# Text node
-		unless i % 2
-			# Adjust textIndex
-			textIndex += part.length
+		else
+			# Entities
+			textParts = htmlPart.replace(entityRegex,'<$1>').split(/<|>/g)
+			for textPart,ii in textParts
+				# Adjust index
+				htmlIndex += textPart.length
+				
+				# Entity
+				if (ii % 2) is 1
+					# Adjust indexes
+					textIndex += 1
+				
+					# Reached?
+					if textIndex > index
+						break
+				
+				# Text node
+				else
+					# Apply indexes
+					textIndex += textPart.length
+
+					# Reached?
+					if textIndex > index
+						htmlIndex -= (textIndex - index)
+						break
 
 			# Reached?
 			if textIndex > index
-				htmlIndex -= (textIndex - index)
 				break
 	
 	# Return
@@ -102,58 +127,80 @@ String.prototype.levelHtmlIndexes = (start, finish) ->
 		for i in [0...n]
 			finishIndex = @indexOf('>', finishIndex + 1)+1
 
-	console.log 'level:', [startDepth,finishDepth], [start,finish], [startIndex,finishIndex]
+	#console.log 'level:', [startDepth,finishDepth], [start,finish], [startIndex,finishIndex]
 	
 	# Return
 	[startIndex, finishIndex]
 
-# Returns a jQuery element for a text range
-# $("a <strong>b</strong> c d").range(2,5) > $("<span class="partial"><strong>b</strong> c</span>")
-$.fn.range = (start, finish) ->
+# Apply the changes to a slice
+$.fn.apply = ->
+	$slice = $(this)
+	$originalOld = $slice.data('slice-parent-old')
+	$originalNew = $slice.data('slice-parent-new')
+	if !$originalOld or !$originalNew
+		return $slice
+	$originalOld.html($originalNew.html())
+
+$.fn.textSlice = (start,finish) ->
+	[startIndex,finishIndex] = html.levelTextIndexes(start,finish)
+	$(this).htmlSlice(startIndex,finishIndex)
+	
+# Returns a jQuery element for a text slice
+# $("a <strong>b</strong> c d").slice(2,5) > $("<span class="partial"><strong>b</strong> c</span>")
+$.fn.htmlSlice = (start, finish) ->
 	# Prepare
-	$el = $(this)
+	$this = $(this)
+
+	# Clone?
+	clone = $this.data('slice-clone') || true
+	$el = if clone then $this.clone() else $this
 	html = $el.html()
 
 	# Check
 	unless html
 		return $el
 	if start > finish
-		throw new Error('$.fn.range was passed a start index greater than the finish index')
+		throw new Error('$.fn.slice was passed a start index greater than the finish index')
 
 	# Check
 	if (start? and finish?) isnt true
-		throw new Error('$.fn.range was passed incorrect indexes')
+		throw new Error('$.fn.slice was passed incorrect indexes')
 
-	# Indexes
-	console.log 'range:', [start,finish]
-	[startIndex,finishIndex] = html.levelTextIndexes(start,finish)
+	# Level
+	[startIndex,finishIndex] = html.levelHtmlIndexes(start,finish)
 
 	# Check
 	if (startIndex? and finishIndex?) isnt true
-		console.log [start,finish], $el.text(), html
-		throw new Error('$.fn.range could not level indexes')
+		throw new Error('$.fn.slice could not level indexes')
 
 	# Check
 	if startIndex? and finishIndex?
-		console.log html.substring(startIndex, finishIndex)
+		#console.log html.substring(startIndex, finishIndex)
 
-		# Wrap range with a range element
+		# Wrap slice with a slice element
 		wrappedHtml = html.substring(0, startIndex)+
-			'<span class="range new">'+
+			'<span class="slice new">'+
 			html.substring(startIndex, finishIndex)+
 			'</span>'+
 			html.substring(finishIndex)
 		
-		# Apply range element
-		$range = $el.html(wrappedHtml).find('span.range.new')
+		# Apply slice element
+		$slice = $el.html(wrappedHtml).find('span.slice.new')
 		if wrappedHtml isnt $el.html()
-			throw new Error('range was not applied as expected')
-		$range.removeClass 'new'
+			console.log wrappedHtml
+			console.log $el.html()
+			debugger
+			throw new Error('slice was not applied as expected')
+		$slice.removeClass 'new'
 	else
-		$range = $el
+		$slice = $el
 	
+	# References
+	if clone
+		$slice.data('slice-parent-old', $this).data('slice-parent-new', $el)
+
 	# Return
-	$range
+	$slice
 
 # Turn an element's insides into its outsides
 $.fn.puke = ->
@@ -161,17 +208,17 @@ $.fn.puke = ->
 	$this.replaceWith $this.html()
 	$this
 
-# Clean ranges from the element
-# $("a <strong><span class="range">b</span></strong> c d").cleanRanges() > $("a <strong>b</strong> c d")
-$.fn.cleanRanges = ->
+# Clean slices from the element
+# $("a <strong><span class="slice">b</span></strong> c d").cleanSlices() > $("a <strong>b</strong> c d")
+$.fn.cleanSlices = ->
 	# Prepare
 	$this = $(this)
 
 	# Clean
 	while true
-		$range = $this.find('.range:first')
-		if $range.length is 0 then break
-		$range.puke()
+		$slice = $this.find('.slice:first')
+		if $slice.length is 0 then break
+		$slice.puke()
 	
 	# Return
 	$this
@@ -181,17 +228,17 @@ $.fn.clean = ->
 	# Prepare
 	$this = $(this)
 
-	# Selection range
+	# Fetch selection
 	selectionRange = $this.selectionRange()
 
-	# Ranges
-	$this.cleanRanges()
+	# Slices
+	$this.cleanSlices()
 
 	# Elements
 	for elementType in ['strong','b','u','em','i','del','ins']
 		$this.find(elementType).find(elementType).puke()
-
-	# Selection range
+	
+	# Reapply selection
 	$this.selectionRange(selectionRange)
 
 	# Return

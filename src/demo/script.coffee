@@ -9,8 +9,13 @@ $ ->
 	# Events
 	update = (event) ->
 		$code.text $content.html()
-		# console.log $content.selection()
+		sel = $content.selection()
 	$content.change(update).trigger('change')
+
+	# Timer
+	cleaner = ->
+		$('[contenteditable]').clean()
+	#setInterval cleaner, 1500
 
 	# Wrap
 	wrap = (event) ->
@@ -21,6 +26,7 @@ $ ->
 		unless $selection.length
 			return
 		$selection.wrap(element)
+		$selection.apply()
 		$content.clean()
 		$content.trigger('change')
 	$wrap.click(wrap)
