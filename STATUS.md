@@ -16,3 +16,7 @@
 ## Next Steps
 
 - see if it works with nowpad
+- add more advanced cleaning
+- optimise the whole darn thing, it's very ineffecient right now
+- add an unwrap button
+- get slices and selections working on textareas
