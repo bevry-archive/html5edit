@@ -6,6 +6,8 @@ $ ->
 	$selection = $('#selection')
 	$wrap = $('#wrap')
 	$clean = $('#clean')
+	$b = $('#b')
+	$pem = $('#pem')
 
 	# Events
 	update = (event) ->
@@ -37,3 +39,18 @@ $ ->
 		$content.clean()
 		$content.trigger('change')
 	$clean.click(clean)
+
+	# Pem
+	pem = (event) ->
+		$content.find('p').each ->
+			$this = $(this)
+			html = $this.html()
+			$this.htmlSlice(0, html.indexOf(' ')).wrap('<em>').apply()
+		$content.trigger('change')
+	$pem.click(pem)
+
+	# B
+	b = (event) ->
+		$selection = $content.htmlSelection().wrap('<strong>').apply().select(true)
+		$content.trigger('change')
+	$b.click(b)

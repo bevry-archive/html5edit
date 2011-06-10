@@ -242,7 +242,7 @@ $.fn.apply = ->
 	$originalNew = $slice.data('slice-parent-new')
 	if !$originalOld or !$originalNew
 		return $slice
-	$originalOld.empty().append($originalNew.children())
+	$originalOld.empty().append($originalNew.contents())
 	$slice
 
 # Clean the element
