@@ -85,17 +85,41 @@ $.fn.rawHtml = ->
 		else
 			outerHtml
 
+$.fn.nextContent = ->
+	$a = $(this)
+	current = $a
+	exit = false
+	found = false
+	$a.parent().contents().each ->
+		$b = $(this)
+		current = $b
+		if exit
+			found = true
+			return false
+		if $b.same($a)
+			exit = true
+	if found is false
+		current = $a.parent().nextContent()
+	$(current)
+
 # Fetch node offset
 # $('<div>a <span>b c</span> d</div>').getNodeOffset(4) > ['b c',2]
 $.fn.getNodeHtmlOffset = (htmlIndex) ->
 	# Prepare
 	$parent = $(this)
 	parent = $parent.get(0)
-	result = [parent,0]
+	$contents = $parent.contents()
+
+	# Prepare results
+	result = [parent,htmlIndex]
+	if $parent.rawHtml().length is htmlIndex
+		$next = $parent.nextContent()
+		if $next.length isnt 0
+			result = [$next.get(0),0]	
 
 	# Contents
 	offset = 0
-	$parent.contents().each ->
+	$contents.each ->
 		# Fetch
 		$container = $(this)
 		container = $container.get(0)
@@ -247,7 +271,7 @@ $.fn.htmlSelectionRange = (selectionRange) ->
 
 			# Range Nodes
 			if $el.text().length
-				debugger
+				#debugger
 				[startNode,startOffset] = $el.getNodeHtmlOffset(selectionRange.selectionStart)
 				[endNode,endOffset] = $el.getNodeHtmlOffset(selectionRange.selectionEnd)
 				range.setStart(startNode,startOffset)
