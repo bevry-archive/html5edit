@@ -146,16 +146,6 @@ String.prototype.levelHtmlIndexes = (start, finish) ->
 	# Return
 	[startIndex, finishIndex]
 
-# Apply the changes to a slice
-$.fn.apply = ->
-	$slice = $(this).addClass('apply')
-	$originalOld = $slice.data('slice-parent-old')
-	$originalNew = $slice.data('slice-parent-new')
-	if !$originalOld or !$originalNew
-		return $slice
-	$originalOld.html($originalNew.html())
-	#$originalOld.find('.apply').removeClass('apply').select(true)
-
 $.fn.textSlice = (start,finish) ->
 	[startIndex,finishIndex] = html.levelTextIndexes(start,finish)
 	$(this).htmlSlice(startIndex,finishIndex)
@@ -237,6 +227,17 @@ $.fn.cleanSlices = ->
 	
 	# Return
 	$this
+
+# Apply the changes to a slice
+$.fn.apply = ->
+	$slice = $(this).addClass('apply')
+	$originalOld = $slice.data('slice-parent-old')
+	$originalNew = $slice.data('slice-parent-new')
+	if !$originalOld or !$originalNew
+		return $slice
+	$originalOld.empty().append($originalNew.children())
+	$slice.select(true)
+	#$slice = $originalOld.find('.apply').removeClass('apply').select(true)
 
 # Clean the element
 $.fn.clean = ->

@@ -5,6 +5,7 @@ $ ->
 	$code = $('#code')
 	$selection = $('#selection')
 	$wrap = $('#wrap')
+	$clean = $('#clean')
 
 	# Events
 	update = (event) ->
@@ -27,8 +28,12 @@ $ ->
 		$selection = $content.htmlSelection()
 		unless $selection.length
 			return
-		$selection.wrap(element)
-		$selection.apply()
-		$content.clean()
+		$selection.wrap(element).apply()
 		$content.trigger('change')
 	$wrap.click(wrap)
+
+	# Clean
+	clean = (event) ->
+		$content.clean()
+		$content.trigger('change')
+	$clean.click(clean)

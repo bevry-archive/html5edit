@@ -247,10 +247,12 @@ $.fn.htmlSelectionRange = (selectionRange) ->
 
 			# Range Nodes
 			if $el.text().length
+				debugger
 				[startNode,startOffset] = $el.getNodeHtmlOffset(selectionRange.selectionStart)
 				[endNode,endOffset] = $el.getNodeHtmlOffset(selectionRange.selectionEnd)
 				range.setStart(startNode,startOffset)
 				range.setEnd(endNode,endOffset)
+				console.log endNode, endOffset, selectionRange.selectionEnd
 
 			# Apply
 			selection.addRange(range)
@@ -339,12 +341,17 @@ $.fn.select = (all) ->
 	$el = $(this)
 	all or= false
 
-	# Select
-	$el.htmlSelectionRange(
+	# Range
+	selectionRange =
 		selectionStart: 0
 		selectionEnd: if all then $el.rawHtml().length else 0
-	)
-	$el.focus()
-
+	
+	# Select
+	$el.htmlSelectionRange(selectionRange)
+	if $el.is('input')
+		$el.focus()
+	else
+		$el.parents('#content').contents().focus()
+	
 	# Return
 	$el
