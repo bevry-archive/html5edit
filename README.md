@@ -32,7 +32,7 @@ HTML5 Edit is contenteditable for all.
 
 1. Checkout HTML5 Edit
 		
-		git clone https://balupton@github.com/balupton/html5edit.git
+		git clone https://github.com/balupton/html5edit.git
 		cd html5edit
 		npm install
 
