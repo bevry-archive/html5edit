@@ -9,8 +9,8 @@ $ ->
 	# Events
 	update = (event) ->
 		$code.text $content.html()
-		sel = $content.htmlSelection()
-		$content.clean()
+		#sel = $content.htmlSelection()
+		#$content.clean()
 	$content.change(update).trigger('change')
 
 	# Timer
