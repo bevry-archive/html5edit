@@ -241,11 +241,11 @@ $.fn.cleanSlices = ->
 $.fn.clean = ->
 	# Prepare
 	$this = $(this)
-	html = $this.html()
 
 	# Fetch selection
 	selectionRange = $this.htmlSelectionRange()
 	if selectionRange
+		html = $this.html()
 		selectionRange.selectionStart = html.htmlToTextIndex(selectionRange.selectionStart)
 		selectionRange.selectionEnd = html.htmlToTextIndex(selectionRange.selectionEnd)
 
@@ -258,6 +258,7 @@ $.fn.clean = ->
 	
 	# Reapply selection
 	if selectionRange
+		html = $this.html()
 		selectionRange.selectionStart = html.textToHtmlIndex(selectionRange.selectionStart)
 		selectionRange.selectionEnd = html.textToHtmlIndex(selectionRange.selectionEnd)
 		$this.htmlSelectionRange(selectionRange)

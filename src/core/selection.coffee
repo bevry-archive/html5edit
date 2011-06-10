@@ -54,8 +54,8 @@ $.fn.includes = (container) ->
 	result
 
 $.fn.elementStartLength = ->
-	$el = $(this)
-	outerHtml = $el.outerHtml()
+	$this = $(this)
+	outerHtml = $this.outerHtml()
 	result =
 		if outerHtml and outerHtml[0] is '<'
 			outerHtml.replace(/>.+$/g,'>').length
@@ -63,13 +63,27 @@ $.fn.elementStartLength = ->
 			0
 
 $.fn.elementEndLength = ->
-	$el = $(this)
-	outerHtml = $el.outerHtml()
+	$this = $(this)
+	outerHtml = $this.outerHtml()
 	result =
 		if outerHtml and outerHtml[0] is '<'
 			outerHtml.replace(/^.+</g,'<').length
 		else
 			0
+
+$.fn.isElement = ->
+	$this = $(this)
+	outerHtml = $this.outerHtml()
+	return outerHtml and outerHtml[0] is '<'
+
+$.fn.rawHtml = ->
+	$this = $(this)
+	outerHtml = $this.outerHtml()
+	result =
+		if outerHtml and outerHtml[0] is '<'
+			$this.html()
+		else
+			outerHtml
 
 # Fetch node offset
 # $('<div>a <span>b c</span> d</div>').getNodeOffset(4) > ['b c',2]
@@ -77,44 +91,56 @@ $.fn.getNodeHtmlOffset = (htmlIndex) ->
 	# Prepare
 	$parent = $(this)
 	parent = $parent.get(0)
-	result = null
+	result = [parent,0]
 
 	# Contents
-	currentHtmlIndex = 0
+	offset = 0
 	$parent.contents().each ->
 		# Fetch
 		$container = $(this)
 		container = $container.get(0)
-		htmlLength = ($container.html() || $container.text()).length
+		htmlLength = $container.rawHtml().length
 		startLength = $container.elementStartLength()
 
-		# Add start
-		currentHtmlIndex += startLength + htmlLength
+		# Adjust the offset
+		offset += startLength
 
-		# We are good to go
-		if currentHtmlIndex >= htmlIndex
-			# Calculate offset
-			offset = htmlIndex-(currentHtmlIndex-htmlLength)
+		# Approached our mark
+		console.log offset, htmlIndex, $container.outerHtml()
+		if offset >= htmlIndex
+			# Correct overshoot
+			offset -= (offset-htmlIndex)
+			localOffset = htmlIndex-offset
 
-			# We haven't overshot?
-			if offset >= 0
-				# This is it
-				if container.nodeType is 3
-					result = [container,offset]
-				
-				# Delve deeper
-				else
-					result = $container.getNodeHtmlOffset(offset)
-					unless result?
-						result = [container,offset]
-				
-			# Break
-			return false
-		
-		# Keep looking
+			# Got the right element
+			if container.nodeType is 3
+				result = [container,localOffset]
+				return false
+			
+			# Try and delve deeper
+			else
+				result = $container.getNodeHtmlOffset(localOffset)
+				unless result?
+					result = [container,localOffset]
+				return false
+	
+		# Our mark is soon
 		else
-			# Add end
-			currentHtmlIndex += $container.elementEndLength()
+			# Adjust the offset
+			offset += htmlLength
+
+			# Our mark is within
+			if offset > htmlIndex
+				# Delve deeper
+				result = $container.getNodeHtmlOffset(htmlLength-(offset-htmlIndex))
+				return false
+			
+			# Our mark is upcoming
+			else
+				offset += $container.elementEndLength()
+		
+		# Continue
+		return true
 
 	# Return
 	return result
@@ -132,7 +158,7 @@ $.fn.expandHtmlOffset = (container,offset) ->
 	# Check to see if the container is the parent
 	if includes is 'same'
 		#console.log 'love child', [parent,container]
-		result = $el.elementStartLength() + offset
+		result = $parent.elementStartLength() + offset
 
 	# Check to see if the container is a 1st level child
 	else if includes
@@ -217,7 +243,7 @@ $.fn.htmlSelectionRange = (selectionRange) ->
 
 			# Range
 			range = document.createRange()
-			range.selectNodeContents(el)
+			#range.selectNodeContents(el)
 
 			# Range Nodes
 			if $el.text().length
@@ -256,9 +282,8 @@ $.fn.htmlSelectionRange = (selectionRange) ->
 				debugger
 				if true
 					$start = $(range.startContainer).element()
-					startHtml = $start.html()
 					startOffset = $start.text().indexOf($(range.startContainer).text())
-					startIndex = startHtml.textToHtmlIndex(startOffset+range.startOffset)
+					startIndex = $start.html().textToHtmlIndex(startOffset+range.startOffset)
 					selectionStart = $el.expandHtmlOffset($start,startIndex)
 				else
 					selectionStart = $el.expandHtmlOffset(range.startContainer,range.startOffset)
@@ -266,9 +291,8 @@ $.fn.htmlSelectionRange = (selectionRange) ->
 				# Level end offset
 				if true
 					$end = $(range.endContainer).element()
-					endHtml = $end.html()
 					endOffset = $end.text().indexOf($(range.endContainer).text())
-					endIndex = endHtml.textToHtmlIndex(endOffset+range.endOffset)
+					endIndex = $end.html().textToHtmlIndex(endOffset+range.endOffset)
 					selectionEnd = $el.expandHtmlOffset($end,endIndex)
 				else
 					selectionEnd = $el.expandHtmlOffset(range.endContainer,range.endOffset)
@@ -301,7 +325,17 @@ $.fn.htmlSelection = (selectionRange) ->
 	
 	# Range
 	if selectionRange?
-		$slice = $el.htmlSlice(selectionRange.selectionStart,selectionRange.selectionEnd)
+		debugger
+
+		html = $el.html()
+		$slice = $el.htmlSlice(selectionRange.selectionStart,selectionRange.selectionEnd).apply()
+		selectionRange.selectionStart = html.htmlToTextIndex(selectionRange.selectionStart)
+		selectionRange.selectionEnd = html.htmlToTextIndex(selectionRange.selectionEnd)
+		
+		html = $el.html()
+		selectionRange.selectionStart = html.textToHtmlIndex(selectionRange.selectionStart)
+		selectionRange.selectionEnd = html.textToHtmlIndex(selectionRange.selectionEnd)
+		
 		$el.htmlSelectionRange(selectionRange) # re-apply, as range will change the dom
 	else
 		$slice = $()
