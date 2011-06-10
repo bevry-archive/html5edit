@@ -154,6 +154,7 @@ $.fn.apply = ->
 	if !$originalOld or !$originalNew
 		return $slice
 	$originalOld.html($originalNew.html())
+	# needs cursor updating
 
 $.fn.textSlice = (start,finish) ->
 	[startIndex,finishIndex] = html.levelTextIndexes(start,finish)

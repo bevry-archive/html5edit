@@ -9,7 +9,8 @@ $ ->
 	# Events
 	update = (event) ->
 		$code.text $content.html()
-		#sel = $content.htmlSelection()
+		sel = $content.htmlSelection()
+		console.log 'sel:', sel
 		#$content.clean()
 	$content.change(update).trigger('change')
 

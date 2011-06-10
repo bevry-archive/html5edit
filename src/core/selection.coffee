@@ -106,7 +106,7 @@ $.fn.getNodeHtmlOffset = (htmlIndex) ->
 		offset += startLength
 
 		# Approached our mark
-		console.log offset, htmlIndex, $container.outerHtml()
+		#console.log offset, htmlIndex, $container.outerHtml()
 		if offset >= htmlIndex
 			# Correct overshoot
 			offset -= (offset-htmlIndex)
@@ -321,22 +321,12 @@ $.fn.htmlSelection = (selectionRange) ->
 	else
 		selectionRange = $el.htmlSelectionRange()
 	
-	console.log 'selectionRange:', selectionRange
+	#console.log 'selectionRange:', selectionRange
 	
 	# Range
 	if selectionRange?
-		debugger
-
-		html = $el.html()
-		$slice = $el.htmlSlice(selectionRange.selectionStart,selectionRange.selectionEnd).apply()
-		selectionRange.selectionStart = html.htmlToTextIndex(selectionRange.selectionStart)
-		selectionRange.selectionEnd = html.htmlToTextIndex(selectionRange.selectionEnd)
-		
-		html = $el.html()
-		selectionRange.selectionStart = html.textToHtmlIndex(selectionRange.selectionStart)
-		selectionRange.selectionEnd = html.textToHtmlIndex(selectionRange.selectionEnd)
-		
-		$el.htmlSelectionRange(selectionRange) # re-apply, as range will change the dom
+		#debugger
+		$slice = $el.htmlSlice(selectionRange.selectionStart,selectionRange.selectionEnd)
 	else
 		$slice = $()
 	
