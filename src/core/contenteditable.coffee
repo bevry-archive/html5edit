@@ -26,7 +26,9 @@ $ -> # Enter event
 			$this
 		.live 'blur keyup paste', ->
 			$this = $(this)
-			if $this.data('before') isnt $this.html()
+			html = $this.html()
+			if $this.data('before') isnt html
+				$this.data('before', html)
 				$this.trigger('change')
 			$this
 		.live 'enter', ->

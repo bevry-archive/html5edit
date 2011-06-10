@@ -1,3 +1,11 @@
+generateToken = ->
+	return '!!'+Math.random()+'!!'
+
+String.prototype.selectableLength = ->
+	html = @.toString()
+	text = html.replace(/(\&[0-9a-zA-Z]+\;)/g, ' ')
+	return text.length
+
 # Turns a text index into a html index
 # "a <strong>b</strong> c d".textToHtmlIndex(2) > 10
 String.prototype.textToHtmlIndex = (index) ->
@@ -59,7 +67,7 @@ String.prototype.htmlToTextIndex = (htmlIndex) ->
 	html = @.toString()
 
 	# Detect
-	token = '!!'+Math.random()+'!!'
+	token = generateToken()
 	$html = $(html.substring(0,htmlIndex)+token+html.substring(htmlIndex))
 	textIndex = $html.text().indexOf(token)
 
@@ -194,8 +202,7 @@ $.fn.htmlSlice = (start, finish) ->
 		if wrappedHtml isnt $el.html()
 			console.log wrappedHtml
 			console.log $el.html()
-			debugger
-			throw new Error('slice was not applied as expected')
+			console.warn new Error('slice was not applied as expected')
 		$slice.removeClass 'new'
 	else
 		$slice = $el
@@ -236,8 +243,7 @@ $.fn.apply = ->
 	if !$originalOld or !$originalNew
 		return $slice
 	$originalOld.empty().append($originalNew.children())
-	$slice.select(true)
-	#$slice = $originalOld.find('.apply').removeClass('apply').select(true)
+	$slice
 
 # Clean the element
 $.fn.clean = ->
@@ -247,9 +253,19 @@ $.fn.clean = ->
 	# Fetch selection
 	selectionRange = $this.htmlSelectionRange()
 	if selectionRange
+		tokenStart = generateToken()
+		tokenEnd = generateToken()
 		html = $this.html()
-		selectionRange.selectionStart = html.htmlToTextIndex(selectionRange.selectionStart)
-		selectionRange.selectionEnd = html.htmlToTextIndex(selectionRange.selectionEnd)
+		$this.html(
+			html.substring(0,selectionRange.selectionStart) +
+			tokenStart +
+			html.substring(selectionRange.selectionStart,selectionRange.selectionEnd) +
+			tokenEnd +
+			html.substring(selectionRange.selectionEnd)
+		)
+		console.log 'one', selectionRange
+		console.log html
+		console.log $this.html()
 
 	# Slices
 	$this.cleanSlices()
@@ -261,8 +277,23 @@ $.fn.clean = ->
 	# Reapply selection
 	if selectionRange
 		html = $this.html()
-		selectionRange.selectionStart = html.textToHtmlIndex(selectionRange.selectionStart)
-		selectionRange.selectionEnd = html.textToHtmlIndex(selectionRange.selectionEnd)
+		tokenStartIndex = html.indexOf(tokenStart)
+		tokenEndIndex = html.indexOf(tokenEnd)
+		parts = [
+			html.substring(0,tokenStartIndex)
+			html.substring(tokenStartIndex+tokenStart.length,tokenEndIndex)
+			html.substring(tokenEndIndex+tokenEnd.length)
+		]
+		#debugger
+		if parts[2].length and /^\<\/(div|p)/.test(parts[2])
+			parts[2] = ' '+parts[2]
+		$this.html(parts.join(''))
+		console.log 'two'
+		console.log html
+		console.log $this.html()
+		selectionRange.selectionStart = tokenStartIndex
+		selectionRange.selectionEnd = tokenEndIndex-tokenStart.length
+		console.log html, selectionRange
 		$this.htmlSelectionRange(selectionRange)
 
 	# Return

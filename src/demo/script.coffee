@@ -12,7 +12,7 @@ $ ->
 		$code.text $content.html()
 		sel = $content.htmlSelection()
 		console.log 'sel:', sel
-		#$content.clean()
+		$content.clean()
 	$content.change(update).trigger('change')
 
 	# Timer
@@ -28,7 +28,7 @@ $ ->
 		$selection = $content.htmlSelection()
 		unless $selection.length
 			return
-		$selection.wrap(element).apply()
+		$selection.wrap(element).apply().select(true)
 		$content.trigger('change')
 	$wrap.click(wrap)
 

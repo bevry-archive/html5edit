@@ -85,7 +85,9 @@ $.fn.rawHtml = ->
 		else
 			outerHtml
 
-$.fn.nextContent = ->
+$.fn.nextContent = (recurse) ->
+	recurse ?= true
+
 	$a = $(this)
 	current = $a
 	exit = false
@@ -99,7 +101,7 @@ $.fn.nextContent = ->
 		if $b.same($a)
 			exit = true
 	if found is false
-		current = $a.parent().nextContent()
+		current = $a.parent().nextContent(false)
 	$(current)
 
 # Fetch node offset
@@ -111,11 +113,7 @@ $.fn.getNodeHtmlOffset = (htmlIndex) ->
 	$contents = $parent.contents()
 
 	# Prepare results
-	result = [parent,htmlIndex]
-	if $parent.rawHtml().length is htmlIndex
-		$next = $parent.nextContent()
-		if $next.length isnt 0
-			result = [$next.get(0),0]	
+	result = null
 
 	# Contents
 	offset = 0
@@ -166,6 +164,22 @@ $.fn.getNodeHtmlOffset = (htmlIndex) ->
 		# Continue
 		return true
 
+	# Ensure
+	unless result?
+		html = $parent.rawHtml()
+		htmlLength = html.length
+		selectableLength = html.selectableLength()
+		if htmlLength < htmlIndex
+			result = [parent,htmlLength]
+		else if htmlLength is htmlIndex
+			$next = $parent.nextContent()
+			if $next.length isnt 0
+				result = [$next.get(0),0]
+		else
+			#debugger
+			htmlIndex -= (htmlLength - selectableLength)
+			result = [parent,htmlIndex]
+	
 	# Return
 	return result
 
