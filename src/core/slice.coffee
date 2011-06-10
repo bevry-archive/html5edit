@@ -148,13 +148,13 @@ String.prototype.levelHtmlIndexes = (start, finish) ->
 
 # Apply the changes to a slice
 $.fn.apply = ->
-	$slice = $(this)
+	$slice = $(this).addClass('apply')
 	$originalOld = $slice.data('slice-parent-old')
 	$originalNew = $slice.data('slice-parent-new')
 	if !$originalOld or !$originalNew
 		return $slice
 	$originalOld.html($originalNew.html())
-	# needs cursor updating
+	#$originalOld.find('.apply').removeClass('apply').select(true)
 
 $.fn.textSlice = (start,finish) ->
 	[startIndex,finishIndex] = html.levelTextIndexes(start,finish)

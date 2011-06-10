@@ -48,6 +48,7 @@ HTML5 Edit is contenteditable for all.
 
 HTML5 Edit is currently in the research phase. It is currently a research project aimed at finding new ways of doing things. In HTML5 Edit's case, allowing anyone to use contenteditable.
 
+To see it's current technical status see STATUS.md
 
 
 ## Learning

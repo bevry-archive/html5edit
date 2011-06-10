@@ -279,7 +279,7 @@ $.fn.htmlSelectionRange = (selectionRange) ->
 			# Check heirarchy
 			try
 				# Level start offset
-				debugger
+				#debugger
 				if true
 					$start = $(range.startContainer).element()
 					startOffset = $start.text().indexOf($(range.startContainer).text())
@@ -334,12 +334,16 @@ $.fn.htmlSelection = (selectionRange) ->
 	$slice
 
 # Select the current element
-$.fn.select = ->
+$.fn.select = (all) ->
 	# Prepare
 	$el = $(this)
+	all or= false
 
 	# Select
-	$el.htmlSelectionRange({selectionStart:0,selectionEnd:0})
+	$el.htmlSelectionRange(
+		selectionStart: 0
+		selectionEnd: if all then $el.rawHtml().length else 0
+	)
 	$el.focus()
 
 	# Return
