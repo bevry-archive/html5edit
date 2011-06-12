@@ -49,7 +49,9 @@ HTML5 Edit is currently in the research and development phase. Its focus is HTML
 
 ## History
 
-
+- v0.2 June 12, 2011
+	- Now working with Leveling Slices
+	- Still need to implement other slicing styles
 
 - v0.1 June 8, 2011
 	- Initial commit
