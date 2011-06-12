@@ -1,7 +1,6 @@
 # HTML5 Edit
 
-HTML5 Edit is contenteditable for all.
-
+HTML5 Edit is currently in the research and development phase. Its focus is HTML5's contenteditable feature, and goal is to find better ways of interacting with it.
 
 
 ## Setup
@@ -43,21 +42,14 @@ HTML5 Edit is contenteditable for all.
 3. Open http://localhost:3000/src/demo
 
 
-
-## Status
-
-HTML5 Edit is currently in the research phase. It is currently a research project aimed at finding new ways of doing things. In HTML5 Edit's case, allowing anyone to use contenteditable.
-
-To see it's current technical status see STATUS.md
-
-
 ## Learning
 
-[To learn more about HTML5 Edit visit its wiki here](https://github.com/balupton/html5edit/wiki)
-
+[HTML5 Edit's wiki is the best place to learn about it.](https://github.com/balupton/html5edit/wiki)
 
 
 ## History
+
+
 
 - v0.1 June 8, 2011
 	- Initial commit
