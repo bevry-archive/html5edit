@@ -1,7 +1,7 @@
 {
 	"name": "html5edit",
-	"version": "0.2.0",
-	"description": "HTML5 Edit is contenteditable for all",
+	"version": "0.2.1",
+	"description": "Lightweight R&D project surrounding HTML5's contenteditable feature",
 	"homepage": "https://github.com/balupton/html5edit",
 	"keywords": [
 		"javascript",
