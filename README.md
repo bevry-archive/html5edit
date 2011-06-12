@@ -14,7 +14,7 @@ HTML5 Edit is currently in the research and development phase. Its focus is HTML
 		npm -g install coffee-script
 
 
-### Grab It
+### Try It / Grab It
 
 1. Checkout HTML5 Edit
 		
