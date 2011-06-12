@@ -11,20 +11,7 @@ HTML5 Edit is currently in the research and development phase. Its focus is HTML
 
 2. Install Required Node Packages
 		
-		npm -g install coffee-script simple-server
-
-
-### Try It
-
-1. Install HTML5 Edit
-
-		npm -g install html5edit
-
-2. Start the demo server
-
-		html5edit
-
-3. Open http://localhost:3000/src/demo
+		npm -g install coffee-script
 
 
 ### Grab It
