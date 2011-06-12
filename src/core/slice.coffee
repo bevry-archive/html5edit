@@ -1,3 +1,6 @@
+inlineElements = ['strong','b','u','em','i','del','ins']
+spaceEntities = ['\\s','&nbsp;']
+
 generateToken = ->
 	return '!!'+Math.random()+'!!'
 
@@ -245,6 +248,27 @@ $.fn.apply = ->
 	$originalOld.empty().append($originalNew.contents())
 	$slice
 
+
+$.fn.cleanNeighbours = ->
+	# Prepare
+	$this = $(this)
+	inlineElementsRegex = new RegExp(
+		'(</('+inlineElements.join('|')+')>)'+
+			'('+spaceEntities.join('|')+')'+
+			'<\\2>',
+		'gi'
+	)
+
+	# Apply
+	html = $this.html()
+	while true
+		htmlNew = html.replace(inlineElementsRegex, ' ')
+		if htmlNew is html
+			break
+		else
+			html = htmlNew
+	$this.html(html)
+
 # Clean the element
 $.fn.clean = ->
 	# Prepare
@@ -256,23 +280,23 @@ $.fn.clean = ->
 		tokenStart = generateToken()
 		tokenEnd = generateToken()
 		html = $this.html()
-		$this.html(
+		html =
 			html.substring(0,selectionRange.selectionStart) +
 			tokenStart +
 			html.substring(selectionRange.selectionStart,selectionRange.selectionEnd) +
 			tokenEnd +
 			html.substring(selectionRange.selectionEnd)
-		)
-		console.log 'one', selectionRange
-		console.log html
-		console.log $this.html()
+		$this.html(html)
 
 	# Slices
 	$this.cleanSlices()
 
-	# Elements
-	for elementType in ['strong','b','u','em','i','del','ins']
-		$this.find(elementType).find(elementType).puke()
+	# Elements in Elements
+	for element in inlineElements
+		$this.find(element).find(element).puke()
+	
+	# Clean Neighbours
+	$this.cleanNeighbours()
 	
 	# Reapply selection
 	if selectionRange
