@@ -11,7 +11,7 @@ HTML5 Edit needs to be running on a server to work
 
 1. Clone `html5edit` to your htdocs
 
-2. Open `htp://localhost/html5edit/src/demo/src/index.html` in your browser.
+2. Open `htp://localhost/html5edit/lib/demo/src/index.html` in your browser.
 
 
 ### For Node.js Developers
@@ -32,7 +32,7 @@ HTML5 Edit needs to be running on a server to work
 
 		./bin/html5edit.coffee
 
-1. Open http://localhost:3000/src/demo/src
+1. Open http://localhost:3000/lib/demo/src
 
 
 ## Learning
