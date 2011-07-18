@@ -3,30 +3,36 @@
 HTML5 Edit is currently in the research and development phase. Its focus is HTML5's contenteditable feature, and goal is to find better ways of interacting with it.
 
 
-## Setup
+## Trying it Out
 
-### Pre-Requisites 
+HTML5 Edit needs to be running on a server to work
+
+### For Apache Developers
+
+1. Clone `html5edit` to your htdocs
+
+2. Open `htp://localhost/html5edit/src/demo/src/index.html` in your browser.
+
+
+### For Node.js Developers
 
 1. [Install Node.js](https://github.com/balupton/node/wiki/Installing-Node.js)
 
-2. Install Required Node Packages
-		
-		npm -g install coffee-script
+1. Install [CoffeeScript](http://jashkenas.github.com/coffee-script/) and [Simple-Server](https://github.com/balupton/simple-server)
 
+		npm -g install coffee-script simple-server
 
-### Try It / Grab It
+1. Clone `html5edit`, `cd` into it, and install pre-requisites
 
-1. Checkout HTML5 Edit
-		
-		git clone https://github.com/balupton/html5edit.git
-		cd html5edit
-		npm install
+	git clone https://github.com/balupton/html5edit.git
+	cd html5edit
+	npm install
 
-2. Start the demo server
+1. Start the demo server
 
 		./bin/html5edit.coffee
 
-3. Open http://localhost:3000/src/demo
+1. Open http://localhost:3000/src/demo/src
 
 
 ## Learning

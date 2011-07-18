@@ -1,6 +1,6 @@
 {
 	"name": "html5edit",
-	"version": "0.2.4",
+	"version": "0.2.5",
 	"description": "Lightweight R&D project surrounding HTML5's contenteditable feature",
 	"homepage": "https://github.com/balupton/html5edit",
 	"keywords": [
@@ -42,8 +42,9 @@
 		"url" : "http://github.com/balupton/html5edit.git"
 	},
 	"dependencies": {
-		"simple-server": ">=0.1.4",
-		"coffee-script": ">=1.1.1"
+		"coffee-script": "=1.1",
+		"buildr": "=0.5.4",
+		"simple-server": "=0.4.0"
 	},
 	"engines" : {
 		"node": ">=0.4.0"
