@@ -1,4 +1,4 @@
-$ ->
+$ -> $('body').bind 'html5edit-ready', ->
 	# Elements
 	$style = $('#style')
 	$content = $('#content')
